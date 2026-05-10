@@ -1,0 +1,70 @@
+name: CI
+name: Multi-Stage CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Stage 1: Test [2]
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pytest
+        run: pip install pytest
+      - name: Run Unit Tests
+        run: pytest test_core.py
+
+  # Stage 2: Build [3]
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Artifact (Simulate Build)
+        run: echo "Це текстовий файл, що імітує результат збірки (артефакт)" > build_artifact.txt
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-artifact
+          path: build_artifact.txt
+
+  # Stage 3: Deploy to Staging [3]
+  deploy_staging:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-artifact
+      - name: Simulate Deploy
+        run: |
+          echo "Деплой на Staging сервер..."
+          cat build_artifact.txt
+
+  # Stage 4: Verify Staging [4]
+  verify_staging:
+    needs: deploy_staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Smoke Test (Verify)
+        # Простий тест: 1=1 (успішно)
+        run: python -c "assert 1 == 1, 'Smoke test failed'"
+
+  # Stage 5: Deploy to Production [4]
+  deploy_production:
+    needs: verify_staging
+    runs-on: ubuntu-latest
+    environment: production # Саме це викликає запит на Manual Approval
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-artifact
+      - name: Deploy to Prod
+        run: |
+          echo "Деплой у PRODUCTION..."
+          cat build_artifact.txt
