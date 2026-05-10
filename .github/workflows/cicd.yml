@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-artifact
-          path: build_artifact.txt
+          path: origin/DP/build_artifact.txt
 
   # Stage 3: Deploy to Staging [3]
   deploy_staging:
