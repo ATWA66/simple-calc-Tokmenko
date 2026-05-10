@@ -1,4 +1,3 @@
-name: CI
 name: Multi-Stage CI/CD Pipeline
 
 on:
